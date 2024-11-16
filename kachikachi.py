@@ -17,32 +17,43 @@ def get_active_window_title_and_process_name():
     process_name = process.name()  # 返回进程名称
     return window_title, process_name
 
+class Activity_item:
+    # 起止时间，左闭右开
+    def __init__(self, process, start_time):
+        self.process = process
+        self.start_time = start_time
+        self.end_time = start_time
+
+    def __str__(self):
+        return f"{self.process}, {self.start_time}, {self.end_time}"
+
 def main():
-    print("Start tracking active window. Press Ctrl+C to stop.")
-    record_dict = dict()
-    title, process_name = get_active_window_title_and_process_name()
-    if title != "":
-        record_dict[process_name] = 0
-    now = datetime.now()
-    year, month, day = now.year, now.month, now.day
-    # 时间戳
-    pre_time = int(time.time())
-    try:
-        while True:
-            title, process_name = get_active_window_title_and_process_name()
-            if title != "":
-                now = datetime.now()
-                year, month, day = now.year, now.month, now.day
-                cur_time = int(time.time())
-                duration = cur_time - pre_time
-                pre_time = cur_time
-                # print(f"Year: {year}, Month: {month}, Day: {day}, Timestamp: {pre_time}, duration: {duration}")
-                # 若key存在，则返回value；若不存在则则返回 0
-                record_dict[process_name] = record_dict.get(process_name, 0) + duration
-            print(record_dict)
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("\nStopped tracking active window.")
+    process_dict = dict()
+    activity = list()
+    title, process = "", ""
+    while True:
+        title, process = get_active_window_title_and_process_name()
+        print(f"tile : {title}, process {process}")
+        if title != "":
+            break;
+        time.sleep(1)
+    activity_item = Activity_item(process, int(time.time()))
+    index = 1
+    while True:
+        cur_time = int(time.time())
+        title, process = get_active_window_title_and_process_name()
+        if title != "":
+            activity_item.end_time = cur_time;
+            if process != activity_item.process:
+                activity.append(activity_item)
+                activity_item = Activity_item(process, cur_time)
+            [print(x) for x in activity]
+            # 若key存在，则返回value；若不存在则则返回 0
+            if process not in process_dict:
+                process_dict[process] = index;
+                index += 1
+        print(process_dict)
+        time.sleep(1)
 
 if __name__ == "__main__":
     main()
