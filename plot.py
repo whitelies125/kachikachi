@@ -18,9 +18,8 @@ def get_activity_tbl(cursor):
     rows = cursor.fetchall()
     return rows
 
-# 自定义百分比格式化函数
 def custom_autopct(pct):
-    return f'{pct:.2f}%' if pct >= 2 else ''  # 仅显示 >= 2% 的数据
+    return f'{pct:.2f}%' if pct >= 1 else ''  # 仅显示 >= 1% 的数据
 
 def main():
     conn, cursor = db_init()
@@ -35,12 +34,16 @@ def main():
         total += duration
     for process in statistic:
         statistic[process] = statistic[process] / total * 100
+    statistic = sorted(statistic.items(), key = lambda item: item[1], reverse = True)
 
+    color = ['#F27970', '#F49821', '#D5F566', '#E2CE6E', '#9E6BD4', '#68A76A', '#54A7CC']
+    labels = [item[0] for item in statistic]
+    sizes = [item[1] for item in statistic]
     # 绘制饼图
-    plt.pie(statistic.values(),
-            labels = statistic.keys(),
-            autopct = custom_autopct,       # 显示格式为保留两位小数+%
-            colors = plt.cm.tab20c.colors,  # 使用配色方案
+    plt.pie(sizes,
+            labels = labels,
+            autopct = custom_autopct,
+            colors = color
             )
     # 显示图表
     plt.title('statistic')

@@ -103,7 +103,7 @@ def main():
             print(process_tbl)
             [print(x) for x in get_activity_tbl(cursor)]
             print('-------------------------------------')
-            time.sleep(10)
+            time.sleep(60)
     except KeyboardInterrupt:
         insert_activity_tbl(cursor, activity_item)
         print("stop time tracker.")
