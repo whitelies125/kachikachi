@@ -7,6 +7,7 @@ import sqlite3
 
 def get_active_window_title_and_process_name():
     hwnd = win32gui.GetForegroundWindow()  # 获取当前激活窗口的句柄
+    # 熄屏后会没有 hwnd
     if not hwnd:
         return None, None
     # 当前激活窗口的标题
@@ -53,15 +54,8 @@ def db_init():
 def get_process_tbl(cursor):
     cursor.execute("SELECT * FROM process")
     rows = cursor.fetchall()
-    print(rows)
-    # 将数据转为 Python 数据结构
     process_tbl = { k: v for v, k in rows }
     return process_tbl
-
-def get_activity_tbl(cursor):
-    cursor.execute("SELECT * FROM activity")
-    rows = cursor.fetchall()
-    return rows
 
 def insert_activity_tbl(cursor, activity_item):
     # 定义插入语句
@@ -79,30 +73,26 @@ def main():
         title, process = None, None
         while True:
             title, process = get_active_window_title_and_process_name()
-            if title != None:
+            if process != None:
                 break;
             time.sleep(1)
 
         if process not in process_tbl:
             cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
             process_tbl = get_process_tbl(cursor)
-        print(process_tbl)
 
         activity_item = Activity_item(process_tbl[process], int(time.time()))
         while True:
             cur_time = int(time.time())
             title, process = get_active_window_title_and_process_name()
-            print(f'title: {title}, process: {process}')
-            activity_item.end_time = cur_time;
-            if process not in process_tbl:
-                cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
-                process_tbl = get_process_tbl(cursor)
-            if process_tbl[process] != activity_item.process_id:
-                insert_activity_tbl(cursor, activity_item)
-                activity_item = Activity_item(process_tbl[process], cur_time)
-            print(process_tbl)
-            [print(x) for x in get_activity_tbl(cursor)]
-            print('-------------------------------------')
+            if process != None:
+                activity_item.end_time = cur_time;
+                if process not in process_tbl:
+                    cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
+                    process_tbl = get_process_tbl(cursor)
+                if process_tbl[process] != activity_item.process_id:
+                    insert_activity_tbl(cursor, activity_item)
+                    activity_item = Activity_item(process_tbl[process], cur_time)
             time.sleep(60)
     except KeyboardInterrupt:
         insert_activity_tbl(cursor, activity_item)
