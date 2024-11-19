@@ -2,7 +2,6 @@ import time
 import win32gui
 import win32process
 import psutil
-from datetime import datetime
 import sqlite3
 
 def get_active_window_title_and_process_name():
@@ -86,7 +85,7 @@ def main():
                     activity_item = None
             if process != None:
                 if process not in process_tbl:
-                    insert_process_tbl(process)
+                    insert_process_tbl(cursor, process)
                     process_tbl = get_process_tbl(cursor)
                 if activity_item == None:
                     activity_item = Activity_item(process_tbl[process], cur_time)
