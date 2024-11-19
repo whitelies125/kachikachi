@@ -57,10 +57,13 @@ def get_process_tbl(cursor):
     process_tbl = { k: v for v, k in rows }
     return process_tbl
 
+def insert_process_tbl(cursor, process):
+    cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
+
 def insert_activity_tbl(cursor, activity_item):
-    # 定义插入语句
+    # 插入语句
     insert_sql = "INSERT INTO activity (process_id, start_time, end_time) VALUES (?, ?, ?)"
-    # 插入的数据
+    # 待插入数据
     data = (activity_item.process_id, activity_item.start_time, activity_item.end_time)
     # 执行插入操作
     cursor.execute(insert_sql, data)
@@ -70,33 +73,31 @@ def main():
         conn, cursor = db_init();
         process_tbl = get_process_tbl(cursor)
 
-        title, process = None, None
-        while True:
-            title, process = get_active_window_title_and_process_name()
-            if process != None:
-                break;
-            time.sleep(1)
-
-        if process not in process_tbl:
-            cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
-            process_tbl = get_process_tbl(cursor)
-
-        activity_item = Activity_item(process_tbl[process], int(time.time()))
+        activity_item = None;
         while True:
             cur_time = int(time.time())
             title, process = get_active_window_title_and_process_name()
+            if process == None:
+                if activity_item == None:
+                    time.sleep(60)
+                if activity_item != None:
+                    activity_item.end_time = cur_time;
+                    insert_activity_tbl(cursor, activity_item)
+                    activity_item = None
             if process != None:
-                activity_item.end_time = cur_time;
                 if process not in process_tbl:
-                    cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
+                    insert_process_tbl(process)
                     process_tbl = get_process_tbl(cursor)
+                if activity_item == None:
+                    activity_item = Activity_item(process_tbl[process], cur_time)
+                activity_item.end_time = cur_time;
                 if process_tbl[process] != activity_item.process_id:
                     insert_activity_tbl(cursor, activity_item)
                     activity_item = Activity_item(process_tbl[process], cur_time)
             time.sleep(60)
     except KeyboardInterrupt:
-        insert_activity_tbl(cursor, activity_item)
-        print("stop time tracker.")
+        if activity_item != None:
+            insert_activity_tbl(cursor, activity_item)
     conn.commit()
     conn.close()
 
