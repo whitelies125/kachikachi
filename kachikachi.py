@@ -3,6 +3,7 @@ import win32gui
 import win32process
 import psutil
 import sqlite3
+import logging
 
 def get_active_window_title_and_process_name():
     hwnd = win32gui.GetForegroundWindow()  # 获取当前激活窗口的句柄
@@ -68,6 +69,13 @@ def insert_activity_tbl(cursor, activity_item):
     cursor.execute(insert_sql, data)
 
 def main():
+    logging.basicConfig(
+        filename="log.txt",  # 日志文件名
+        level=logging.INFO,  # 设置最低记录级别
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        filemode="w",  # 写入模式：'w' 覆盖，'a' 追加
+    )
     try:
         conn, cursor = db_init();
         process_tbl = get_process_tbl(cursor)
@@ -76,11 +84,13 @@ def main():
         while True:
             cur_time = int(time.time())
             title, process = get_active_window_title_and_process_name()
+            logging.info(f"{title}, {process}")
             if process == None:
                 if activity_item == None:
                     time.sleep(60)
                 if activity_item != None:
                     activity_item.end_time = cur_time;
+                    logging.info(f"insert process to null {activity_item}")
                     insert_activity_tbl(cursor, activity_item)
                     activity_item = None
             if process != None:
@@ -91,14 +101,17 @@ def main():
                     activity_item = Activity_item(process_tbl[process], cur_time)
                 activity_item.end_time = cur_time;
                 if process_tbl[process] != activity_item.process_id:
+                    logging.info(f"insert process change {activity_item}")
                     insert_activity_tbl(cursor, activity_item)
                     activity_item = Activity_item(process_tbl[process], cur_time)
             time.sleep(60)
-    except KeyboardInterrupt:
+    except :
         if activity_item != None:
+            logging.info(f"insert except {activity_item}")
             insert_activity_tbl(cursor, activity_item)
-    conn.commit()
-    conn.close()
+    if conn != None:
+        conn.commit()
+        conn.close()
 
 if __name__ == "__main__":
     main()
