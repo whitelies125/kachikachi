@@ -70,7 +70,7 @@ def insert_activity_tbl(cursor, activity_item):
 
 def main():
     logging.basicConfig(
-        filename="log.txt",  # 日志文件名
+        filename="kachikachi_log.txt",  # 日志文件名
         level=logging.INFO,  # 设置最低记录级别
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
