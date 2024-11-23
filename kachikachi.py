@@ -135,8 +135,8 @@ def kachikachi(record_event, exit_event):
                 continue;
             if activity_item != None:
                 activity_item.end_time = cur_time;
-                # logging.info(f"kachikachi, insert process to null {activity_item}")
-                # insert_activity_tbl(cursor, activity_item)
+                logging.info(f"kachikachi, insert process to null {activity_item}")
+                insert_activity_tbl(cursor, activity_item)
                 activity_item = None
         if process != None:
             if process not in process_tbl:
@@ -146,8 +146,8 @@ def kachikachi(record_event, exit_event):
                 activity_item = Activity_item(process_tbl[process], cur_time)
             activity_item.end_time = cur_time;
             if process_tbl[process] != activity_item.process_id:
-                # logging.info(f"kachikachi, insert process change {activity_item}")
-                # insert_activity_tbl(cursor, activity_item)
+                logging.info(f"kachikachi, insert process change {activity_item}")
+                insert_activity_tbl(cursor, activity_item)
                 activity_item = Activity_item(process_tbl[process], cur_time)
 
         print("kachikachi task running...")

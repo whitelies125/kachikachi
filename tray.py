@@ -25,32 +25,28 @@ def create_image():
     return image
 
 def on_stop(icon, item):
-    print(f"main : {item}")
     record_event.clear()
     icon.menu = Menu(
         MenuItem(f"Status: Stopping", None),
-        MenuItem("Continue record", lambda icon, item: on_continue(icon, item)),
+        MenuItem("Continue record", on_continue),
         MenuItem("Plot", on_plot),
-        MenuItem("Exit", lambda icon, item: on_exit(icon, item))
+        MenuItem("Exit", on_exit)
     )
 
 def on_continue(icon, item):
-    print(f"main : {item}")
     record_event.set()
     icon.menu = Menu(
         MenuItem(f"Status: Recording", None),
-        MenuItem("Stop record", lambda icon, item: on_stop(icon, item)),
+        MenuItem("Stop record", on_stop),
         MenuItem("Plot", on_plot),
-        MenuItem("Exit", lambda icon, item: on_exit(icon, item))
+        MenuItem("Exit", on_exit)
     )
 
 def on_exit(icon, item):
-    print(f"main : {item}")
     exit_event.set()
     icon.stop()
 
 def on_plot(icon, item):
-    print(f"main : {item}")
     subprocess.Popen(['./Scripts/python', 'plot.py'])
 
 # CTRL_C_EVENT = 0        # 按下ctlr-c
@@ -59,21 +55,20 @@ def on_plot(icon, item):
 # CTRL_SHUTDOWN_EVENT = 6 # 系统关机
 def shutdown_handler(event):
     event_list = {0, 2, 5, 6}
-    print("event ")
+    print(f"event {event}")
     logging.info(f"event {event}")
     if event in event_list:
-        print(f"event {event}")
-        logging.info(f"event {event}")
+        exit_event.set()
         return True  # 返回 True 告诉系统信号已处理
     return False
 
 def main():
     logging.basicConfig(
-        filename="tray_log.txt",  # 日志文件名
-        level=logging.INFO,  # 设置最低记录级别
-        format="%(asctime)s [%(levelname)s] %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-        filemode="w",  # 写入模式：'w' 覆盖，'a' 追加
+        filename = "tray_log.txt",  # 日志文件名
+        level = logging.INFO,  # 设置最低记录级别
+        format = "%(asctime)s [%(levelname)s] %(message)s",
+        datefmt = "%Y-%m-%d %H:%M:%S",
+        filemode = "w",  # 写入模式：'w' 覆盖，'a' 追加
     )
     handler_type = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_uint)
     handler = handler_type(shutdown_handler)
