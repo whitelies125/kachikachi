@@ -154,7 +154,6 @@ def kachikachi(record_event, exit_event):
         logging.info("kachikachi, task running...")
         exit_event.wait(1)
 
-    logging.info(f"kachikachi, break loop")
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")
         insert_activity_tbl(cursor, activity_item)

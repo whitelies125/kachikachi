@@ -3,14 +3,15 @@ import ctypes
 import logging
 import threading
 import subprocess
+import win32api
+import win32con
+import win32gui
 from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem
 
 from kachikachi import kachikachi
 from plot import plot
 
-record_event = threading.Event()
-exit_event = threading.Event()
 
 def create_image():
     """生成一个简单的图标图片"""
@@ -49,18 +50,47 @@ def on_exit(icon, item):
 def on_plot(icon, item):
     subprocess.Popen(['./Scripts/python', 'plot.py'])
 
-# CTRL_C_EVENT = 0        # 按下ctlr-c
-# CTRL_CLOSE_EVENT = 2    # 控制台关闭
-# CTRL_LOGOFF_EVENT = 5   # 用户注销
-# CTRL_SHUTDOWN_EVENT = 6 # 系统关机
-def shutdown_handler(event):
-    event_list = {0, 2, 5, 6}
-    print(f"event {event}")
-    logging.info(f"event {event}")
-    if event in event_list:
+# 定义监听消息钩子函数
+def wnd_proc(hwnd, msg, wparam, lparam):
+    if msg == win32con.WM_QUERYENDSESSION:
+        print("System prepare shutdown!")
+        logging.info(f"System prepare shutdown!")
+    if msg == win32con.WM_ENDSESSION:
+        print("System is shutting down!")
+        logging.info(f"System is shutting down!")
         exit_event.set()
-        return True  # 返回 True 告诉系统信号已处理
-    return False
+        icon.stop()
+        win32gui.PostQuitMessage(0) # 退出消息监听
+        return 1  # 返回 1 表示允许关机
+    return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
+
+# 注册窗口类
+def create_window():
+    wc = win32gui.WNDCLASS()
+    wc.lpfnWndProc = wnd_proc
+    wc.lpszClassName = "ShutdownListener"
+    wc.hInstance = win32api.GetModuleHandle(None)
+    class_atom = win32gui.RegisterClass(wc)
+    hwnd = win32gui.CreateWindow(
+        class_atom,  # 注册类的 atom
+        "ShutdownListener",  # 窗口标题
+        0,  # 窗口样式
+        0, 0,  # 窗口位置 (x, y)
+        0, 0,  # 窗口尺寸 (width, height)
+        0,  # 父窗口句柄
+        0,  # 菜单句柄
+        wc.hInstance,  # 实例句柄
+        None  # 额外的参数
+    )
+    return hwnd
+
+def listen_for_shutdown():
+    hwnd = create_window()
+    win32gui.PumpMessages()  # 启动消息监听
+    print("quit msg listen")
+    logging.info("quit msg listen")
+    win32gui.DestroyWindow(hwnd)
+    win32gui.UnregisterClass("ShutdownListener", win32api.GetModuleHandle(None))
 
 def main():
     logging.basicConfig(
@@ -70,10 +100,15 @@ def main():
         datefmt = "%Y-%m-%d %H:%M:%S",
         filemode = "w",  # 写入模式：'w' 覆盖，'a' 追加
     )
-    handler_type = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_uint)
-    handler = handler_type(shutdown_handler)
-    ctypes.windll.kernel32.SetConsoleCtrlHandler(handler, True)
 
+    # 启动后台线程来监听关机事件
+    listener_thread = threading.Thread(target=listen_for_shutdown, daemon=True)
+    listener_thread.start()
+
+    global record_event
+    global exit_event
+    record_event = threading.Event()
+    exit_event = threading.Event()
     record_event.set()
     # 启动后台线程
     # deamen = False, 主线程等待子线程退出后才退出
@@ -86,9 +121,10 @@ def main():
         MenuItem("Plot", on_plot),
         MenuItem("Exit", on_exit)
     )
-    # 创建托盘图标
+    # 创建托盘程序
+    global icon
     icon = Icon("kachikachi", create_image(), "Kachikachi", menu=menu)
-    # 运行托盘图标
+    # 运行托盘程序
     icon.run()
 
 if __name__ == "__main__":
