@@ -123,7 +123,9 @@ def kachikachi(record_event, exit_event):
     while not exit_event.is_set():
         print(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
         logging.info(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
-        record_event.wait()
+        record_event.wait(1)
+        if not record_event.is_set():
+            continue;
 
         cur_time = int(time.time())
         process_tbl = get_process_tbl(cursor)
@@ -131,7 +133,9 @@ def kachikachi(record_event, exit_event):
         logging.info(f"kachikachi, {title}, {process}")
         if process == None:
             if activity_item == None:
-                time.sleep(10)
+                print("kachikachi None None...")
+                logging.warn("kachikachi, None None...")
+                exit_event.wait(60)
                 continue;
             if activity_item != None:
                 activity_item.end_time = cur_time;

@@ -3,12 +3,10 @@ from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem
 
 from plot import plot
+from thread_manager import threadManager
 
 class Tray:
-    def __init__(self, record_event, exit_event):
-        self.record_event = record_event
-        self.exit_event = exit_event
-
+    def __init__(self):
         menu = Menu(
             MenuItem(f"Status: Recording", None),
             MenuItem("Stop record", self.on_stop),
@@ -30,7 +28,7 @@ class Tray:
         return image
 
     def on_stop(self, icon, item):
-        self.record_event.clear()
+        threadManager.record_event.clear()
         icon.menu = Menu(
             MenuItem("Status: Stopping", None),
             MenuItem("Continue record", self.on_continue),
@@ -39,7 +37,7 @@ class Tray:
         )
 
     def on_continue(self, icon, item):
-        self.record_event.set()
+        threadManager.record_event.set()
         icon.menu = Menu(
             MenuItem("Status: Recording", None),
             MenuItem("Stop record", self.on_stop),
@@ -48,7 +46,7 @@ class Tray:
         )
 
     def on_exit(self, icon, item):
-        self.exit_event.set()
+        threadManager.exit_event.set()
         self.icon.stop()
 
     def on_plot(self, icon, item):
@@ -56,3 +54,5 @@ class Tray:
 
     def run(self):
         self.icon.run()
+
+trayInst = Tray()

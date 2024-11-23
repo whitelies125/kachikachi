@@ -3,12 +3,15 @@ import win32con
 import win32gui
 import logging
 
-class ShutdownListener:
-    def __init__(self, icon, event_list = None):
-        self.icon = icon
-        self.event_list = event_list
+from thread_manager import threadManager
 
+class ShutdownListener:
+    def __init__(self):
         self.hwnd = None
+        self.callback = []
+
+    def addCallback(self, callback):
+        self.callback.append(callback)
 
     # 监听消息钩子函数
     def wnd_proc(self, hwnd, msg, wparam, lparam):
@@ -18,9 +21,8 @@ class ShutdownListener:
         elif msg == win32con.WM_ENDSESSION:
             print("System is shutting down!")
             logging.warn(f"System is shutting down!")
-            for event in self.event_list:
-                event.set()
-            self.icon.stop()
+            for func in self.callback:
+                func()
             win32gui.PostQuitMessage(0) # 退出消息监听
         return win32gui.DefWindowProc(hwnd, msg, wparam, lparam)
 
@@ -60,3 +62,5 @@ class ShutdownListener:
         print("ShutdownListener quit")
         logging.info("ShutdownListener quit")
         self.destroy_hidden_window()
+
+shutdownListener = ShutdownListener()
