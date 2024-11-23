@@ -1,4 +1,5 @@
 import time
+import ctypes
 import logging
 import threading
 import subprocess
@@ -7,6 +8,9 @@ from pystray import Icon, Menu, MenuItem
 
 from kachikachi import kachikachi
 from plot import plot
+
+stop_event = threading.Event()
+exit_event = threading.Event()
 
 def create_image():
     """生成一个简单的图标图片"""
@@ -20,27 +24,27 @@ def create_image():
     draw.ellipse((width // 4, height // 4, 3 * width // 4, 3 * height // 4), fill=color2)
     return image
 
-def on_stop(icon, item, stop_event, exit_event):
+def on_stop(icon, item):
     print(f"main : {item}")
     stop_event.set()
     icon.menu = Menu(
         MenuItem(f"Status: Stopping", None),
-        MenuItem("Continue record", lambda icon, item: on_continue(icon, item, stop_event, exit_event)),
+        MenuItem("Continue record", lambda icon, item: on_continue(icon, item)),
         MenuItem("Plot", on_plot),
-        MenuItem("Exit", lambda icon, item: on_exit(icon, item, exit_event))
+        MenuItem("Exit", lambda icon, item: on_exit(icon, item))
     )
 
-def on_continue(icon, item, stop_event, exit_event):
+def on_continue(icon, item):
     print(f"main : {item}")
     stop_event.clear()
     icon.menu = Menu(
         MenuItem(f"Status: Recording", None),
-        MenuItem("Stop record", lambda icon, item: on_stop(icon, item, stop_event, exit_event)),
+        MenuItem("Stop record", lambda icon, item: on_stop(icon, item)),
         MenuItem("Plot", on_plot),
-        MenuItem("Exit", lambda icon, item: on_exit(icon, item, exit_event))
+        MenuItem("Exit", lambda icon, item: on_exit(icon, item))
     )
 
-def on_exit(icon, item, exit_event):
+def on_exit(icon, item):
     print(f"main : {item}")
     exit_event.set()
     icon.stop()
@@ -48,6 +52,20 @@ def on_exit(icon, item, exit_event):
 def on_plot(icon, item):
     print(f"main : {item}")
     subprocess.Popen(['./Scripts/python', 'plot.py'])
+
+# CTRL_C_EVENT = 0        # 按下ctlr-c
+# CTRL_CLOSE_EVENT = 2    # 控制台关闭
+# CTRL_LOGOFF_EVENT = 5   # 用户注销
+# CTRL_SHUTDOWN_EVENT = 6 # 系统关机
+def shutdown_handler(event):
+    event_list = {0, 2, 5, 6}
+    print("event ")
+    logging.info(f"event {event}")
+    if event in event_list:
+        print(f"event {event}")
+        logging.info(f"event {event}")
+        return True  # 返回 True 告诉系统信号已处理
+    return False
 
 def main():
     logging.basicConfig(
@@ -57,9 +75,10 @@ def main():
         datefmt="%Y-%m-%d %H:%M:%S",
         filemode="w",  # 写入模式：'w' 覆盖，'a' 追加
     )
+    handler_type = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_uint)
+    handler = handler_type(shutdown_handler)
+    ctypes.windll.kernel32.SetConsoleCtrlHandler(handler, True)
 
-    stop_event = threading.Event()
-    exit_event = threading.Event()
     # 启动后台线程
     # deamen = False, 主线程等待子线程退出后才退出
     threading.Thread(target = kachikachi, args = (stop_event, exit_event), daemon = False).start()
@@ -67,9 +86,9 @@ def main():
     # 创建菜单
     menu = Menu(
         MenuItem(f"Status: Recording", None),
-        MenuItem("Stop record", lambda icon, item: on_stop(icon, item, stop_event, exit_event)),
+        MenuItem("Stop record", on_stop),
         MenuItem("Plot", on_plot),
-        MenuItem("Exit", lambda icon, item: on_exit(icon, item, exit_event))
+        MenuItem("Exit", on_exit)
     )
     # 创建托盘图标
     icon = Icon("kachikachi", create_image(), "Kachikachi", menu=menu)
