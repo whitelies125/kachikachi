@@ -9,7 +9,7 @@ from pystray import Icon, Menu, MenuItem
 from kachikachi import kachikachi
 from plot import plot
 
-stop_event = threading.Event()
+record_event = threading.Event()
 exit_event = threading.Event()
 
 def create_image():
@@ -26,7 +26,7 @@ def create_image():
 
 def on_stop(icon, item):
     print(f"main : {item}")
-    stop_event.set()
+    record_event.clear()
     icon.menu = Menu(
         MenuItem(f"Status: Stopping", None),
         MenuItem("Continue record", lambda icon, item: on_continue(icon, item)),
@@ -36,7 +36,7 @@ def on_stop(icon, item):
 
 def on_continue(icon, item):
     print(f"main : {item}")
-    stop_event.clear()
+    record_event.set()
     icon.menu = Menu(
         MenuItem(f"Status: Recording", None),
         MenuItem("Stop record", lambda icon, item: on_stop(icon, item)),
@@ -79,9 +79,10 @@ def main():
     handler = handler_type(shutdown_handler)
     ctypes.windll.kernel32.SetConsoleCtrlHandler(handler, True)
 
+    record_event.set()
     # 启动后台线程
     # deamen = False, 主线程等待子线程退出后才退出
-    threading.Thread(target = kachikachi, args = (stop_event, exit_event), daemon = False).start()
+    threading.Thread(target = kachikachi, args = (record_event, exit_event), daemon = False).start()
 
     # 创建菜单
     menu = Menu(

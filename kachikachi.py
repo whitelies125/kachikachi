@@ -117,17 +117,13 @@ if __name__ == "__main__":
     main()
 
 # export
-def kachikachi(stop_event, exit_event):
+def kachikachi(record_event, exit_event):
     conn, cursor = db_init()
     activity_item = None;
     while not exit_event.is_set():
-        print(f"kachikachi, exit: {exit_event.is_set()}, stop: {stop_event.is_set()}")
-        logging.info(f"kachikachi, exit: {exit_event.is_set()}, stop: {stop_event.is_set()}")
-        if stop_event.is_set():
-            print("kachikachi, task stop...")
-            logging.info("kachikachi, task stop...")
-            time.sleep(1)
-            continue
+        print(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
+        logging.info(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
+        record_event.wait()
 
         cur_time = int(time.time())
         process_tbl = get_process_tbl(cursor)
@@ -156,7 +152,7 @@ def kachikachi(stop_event, exit_event):
 
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
-        time.sleep(1)
+        exit_event.wait(1)
 
     logging.info(f"kachikachi, break loop")
     if activity_item != None:
