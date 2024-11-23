@@ -53,3 +53,36 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+#export
+def plot():
+    print("plot, start")
+    conn, cursor = db_init()
+    process_tbl = get_process_tbl(cursor)
+    activity_tbl = get_activity_tbl(cursor)
+    statistic = dict()
+    total = 0
+    for activity in activity_tbl :
+        index, process_id, start_time, end_time = activity
+        duration = end_time - start_time
+        statistic[process_tbl[process_id]] = statistic.get(process_tbl[process_id], 0) + duration
+        total += duration
+    for process in statistic:
+        statistic[process] = statistic[process] / total * 100
+    statistic = sorted(statistic.items(), key = lambda item: item[1], reverse = True)
+
+    color = ['#F27970', '#F49821', '#D5F566', '#E2CE6E', '#9E6BD4', '#68A76A', '#54A7CC']
+    labels = [item[0] for item in statistic]
+    sizes = [item[1] for item in statistic]
+    # 绘制饼图
+    plt.pie(sizes,
+            labels = labels,
+            autopct = custom_autopct,
+            colors = color
+            )
+    # 显示图表
+    plt.title('statistic')
+    plt.show(block = False)
+    plt.pause(0.1)  # 暂停 0.1 秒，确保图像加载
+    conn.close()
+    print("plot, end")

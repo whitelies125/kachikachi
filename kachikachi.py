@@ -115,3 +115,55 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# export
+def kachikachi(stop_event, exit_event):
+    conn, cursor = db_init()
+    activity_item = None;
+    while not exit_event.is_set():
+        print(f"kachikachi, exit: {exit_event.is_set()}, stop: {stop_event.is_set()}")
+        logging.info(f"kachikachi, exit: {exit_event.is_set()}, stop: {stop_event.is_set()}")
+        if stop_event.is_set():
+            print("kachikachi, task stop...")
+            logging.info("kachikachi, task stop...")
+            time.sleep(1)
+            continue
+
+        cur_time = int(time.time())
+        process_tbl = get_process_tbl(cursor)
+        title, process = get_active_window_title_and_process_name()
+        logging.info(f"kachikachi, {title}, {process}")
+        if process == None:
+            if activity_item == None:
+                time.sleep(10)
+                continue;
+            if activity_item != None:
+                activity_item.end_time = cur_time;
+                # logging.info(f"kachikachi, insert process to null {activity_item}")
+                # insert_activity_tbl(cursor, activity_item)
+                activity_item = None
+        if process != None:
+            if process not in process_tbl:
+                insert_process_tbl(cursor, process)
+                process_tbl = get_process_tbl(cursor)
+            if activity_item == None:
+                activity_item = Activity_item(process_tbl[process], cur_time)
+            activity_item.end_time = cur_time;
+            if process_tbl[process] != activity_item.process_id:
+                # logging.info(f"kachikachi, insert process change {activity_item}")
+                # insert_activity_tbl(cursor, activity_item)
+                activity_item = Activity_item(process_tbl[process], cur_time)
+
+        print("kachikachi task running...")
+        logging.info("kachikachi, task running...")
+        time.sleep(1)
+
+    logging.info(f"kachikachi, break loop")
+    if activity_item != None:
+        logging.info(f"kachikachi, insert thread exit {activity_item}")
+        insert_activity_tbl(cursor, activity_item)
+    if conn != None:
+        conn.commit()
+        conn.close()
+    print("kachikachi, thread exit")
+    logging.info("kachikachi, thread exit")
