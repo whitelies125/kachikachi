@@ -50,7 +50,7 @@ class Tray:
         self.icon.stop()
 
     def on_plot(self, icon, item):
-        subprocess.Popen(['./Scripts/python', 'plot.py'])
+        subprocess.Popen(['./Scripts/pythonw', 'plot.py'])
 
     def run(self):
         self.icon.run()

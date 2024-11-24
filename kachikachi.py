@@ -74,8 +74,8 @@ def kachikachi(record_event, exit_event):
     while not exit_event.is_set():
         print(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
         logging.info(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
-        record_event.wait(1)
         if not record_event.is_set():
+            record_event.wait(1)
             continue;
 
         cur_time = int(time.time())
@@ -107,7 +107,7 @@ def kachikachi(record_event, exit_event):
 
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
-        exit_event.wait(1)
+        exit_event.wait(60)
 
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")
