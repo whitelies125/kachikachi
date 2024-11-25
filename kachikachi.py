@@ -2,8 +2,8 @@ import time
 import win32gui
 import win32process
 import psutil
-import sqlite3
 import logging
+from db_manager import DbManager
 
 def get_active_window_title_and_process_name():
     hwnd = win32gui.GetForegroundWindow()  # 获取当前激活窗口的句柄
@@ -28,48 +28,8 @@ class Activity_item:
     def __str__(self):
         return f"{self.process_id}, {self.start_time}, {self.end_time}"
 
-def db_init():
-    # 连接到 SQLite 数据库，若无则创建
-    database = "data.db"
-    conn = sqlite3.connect(database)
-    # 创建游标对象
-    cursor = conn.cursor()
-    # 若无则创建表
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS process (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 主键，自增
-        process TEXT NOT NULL                  -- 进程名，非空
-    )
-    """)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS activity (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,   -- 主键，自增
-        process_id INTEGER NOT NULL,            -- 进程id，非空
-        start_time INTEGER NOT NULL,            -- 开始时间，非空
-        end_time INTEGER NOT NULL               -- 结束时间，非空
-    )
-    """)
-    return conn, cursor
-
-def get_process_tbl(cursor):
-    cursor.execute("SELECT * FROM process")
-    rows = cursor.fetchall()
-    process_tbl = { k: v for v, k in rows }
-    return process_tbl
-
-def insert_process_tbl(cursor, process):
-    cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
-
-def insert_activity_tbl(cursor, activity_item):
-    # 插入语句
-    insert_sql = "INSERT INTO activity (process_id, start_time, end_time) VALUES (?, ?, ?)"
-    # 待插入数据
-    data = (activity_item.process_id, activity_item.start_time, activity_item.end_time)
-    # 执行插入操作
-    cursor.execute(insert_sql, data)
-
 def kachikachi(record_event, exit_event):
-    conn, cursor = db_init()
+    dbManager = DbManager()
     activity_item = None;
     while not exit_event.is_set():
         print(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
@@ -79,7 +39,7 @@ def kachikachi(record_event, exit_event):
             continue;
 
         cur_time = int(time.time())
-        process_tbl = get_process_tbl(cursor)
+        process_tbl = dbManager.get_process_tbl()
         title, process = get_active_window_title_and_process_name()
         logging.info(f"kachikachi, {title}, {process}")
         if process == None:
@@ -91,18 +51,18 @@ def kachikachi(record_event, exit_event):
             if activity_item != None:
                 activity_item.end_time = cur_time;
                 logging.info(f"kachikachi, insert process to null {activity_item}")
-                insert_activity_tbl(cursor, activity_item)
+                dbManager.insert_activity_tbl(activity_item)
                 activity_item = None
         if process != None:
             if process not in process_tbl:
-                insert_process_tbl(cursor, process)
-                process_tbl = get_process_tbl(cursor)
+                dbManager.insert_process_tbl(process)
+                process_tbl = dbManager.get_process_tbl()
             if activity_item == None:
                 activity_item = Activity_item(process_tbl[process], cur_time)
             activity_item.end_time = cur_time;
             if process_tbl[process] != activity_item.process_id:
                 logging.info(f"kachikachi, insert process change {activity_item}")
-                insert_activity_tbl(cursor, activity_item)
+                dbManager.insert_activity_tbl(activity_item)
                 activity_item = Activity_item(process_tbl[process], cur_time)
 
         print("kachikachi task running...")
@@ -111,9 +71,6 @@ def kachikachi(record_event, exit_event):
 
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")
-        insert_activity_tbl(cursor, activity_item)
-    if conn != None:
-        conn.commit()
-        conn.close()
+        dbManager.insert_activity_tbl(activity_item)
     print("kachikachi, thread exit")
     logging.info("kachikachi, thread exit")
