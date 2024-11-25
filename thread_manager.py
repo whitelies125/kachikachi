@@ -5,6 +5,7 @@ class ThreadManager:
         self.threads = []
         self.record_event = threading.Event()
         self.exit_event = threading.Event()
+        self.plot_event = threading.Event()
 
         self.record_event.set()
 

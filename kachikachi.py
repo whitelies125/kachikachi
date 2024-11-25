@@ -3,7 +3,9 @@ import win32gui
 import win32process
 import psutil
 import logging
+
 from db_manager import DbManager
+from thread_manager import threadManager
 
 def get_active_window_title_and_process_name():
     hwnd = win32gui.GetForegroundWindow()  # 获取当前激活窗口的句柄
@@ -28,25 +30,26 @@ class Activity_item:
     def __str__(self):
         return f"{self.process_id}, {self.start_time}, {self.end_time}"
 
-def kachikachi(record_event, exit_event):
+def kachikachi():
     dbManager = DbManager()
     activity_item = None;
-    while not exit_event.is_set():
-        print(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
-        logging.info(f"kachikachi, exit: {exit_event.is_set()}, record: {record_event.is_set()}")
-        if not record_event.is_set():
-            record_event.wait(1)
+    process_tbl = { v: k for k, v in dbManager.get_process_tbl() }
+    while not threadManager.exit_event.is_set():
+        if not threadManager.record_event.is_set():
+            threadManager.record_event.wait(1)
             continue;
+        if threadManager.plot_event.is_set():
+            dbManager.commit()
+            threadManager.plot_event.clear()
 
         cur_time = int(time.time())
-        process_tbl = dbManager.get_process_tbl()
         title, process = get_active_window_title_and_process_name()
         logging.info(f"kachikachi, {title}, {process}")
         if process == None:
             if activity_item == None:
                 print("kachikachi None None...")
                 logging.warn("kachikachi, None None...")
-                exit_event.wait(60)
+                threadManager.exit_event.wait(60)
                 continue;
             if activity_item != None:
                 activity_item.end_time = cur_time;
@@ -56,7 +59,7 @@ def kachikachi(record_event, exit_event):
         if process != None:
             if process not in process_tbl:
                 dbManager.insert_process_tbl(process)
-                process_tbl = dbManager.get_process_tbl()
+                process_tbl = { v: k for k, v in dbManager.get_process_tbl() }
             if activity_item == None:
                 activity_item = Activity_item(process_tbl[process], cur_time)
             activity_item.end_time = cur_time;
@@ -67,10 +70,11 @@ def kachikachi(record_event, exit_event):
 
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
-        exit_event.wait(60)
+        threadManager.exit_event.wait(60)
 
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")
         dbManager.insert_activity_tbl(activity_item)
+    dbManager.disconnect()
     print("kachikachi, thread exit")
     logging.info("kachikachi, thread exit")

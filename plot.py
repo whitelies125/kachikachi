@@ -1,31 +1,16 @@
 import sqlite3
 import matplotlib.pyplot as plt
 
-def db_init():
-    database = "data.db"
-    conn = sqlite3.connect(database)
-    cursor = conn.cursor()
-    return conn, cursor
-
-def get_process_tbl(cursor):
-    cursor.execute("SELECT * FROM process")
-    rows = cursor.fetchall()
-    process_tbl = { k: v for k, v in rows }
-    return process_tbl
-
-def get_activity_tbl(cursor):
-    cursor.execute("SELECT * FROM activity")
-    rows = cursor.fetchall()
-    return rows
+from db_manager import DbManager
 
 def custom_autopct(pct):
     return f'{pct:.2f}%' if pct >= 1 else ''
 
 def plot():
-    conn, cursor = db_init()
-    process_tbl = get_process_tbl(cursor)
-    activity_tbl = get_activity_tbl(cursor)
-    conn.close()
+    dbManager = DbManager()
+    process_tbl = { k: v for k, v in dbManager.get_process_tbl() }
+    activity_tbl = dbManager.get_activity_tbl()
+    dbManager.disconnect()
     statistic = dict()
     total = 0
     for activity in activity_tbl :

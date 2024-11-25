@@ -1,5 +1,6 @@
 import sqlite3
 import logging
+import threading
 
 class DbManager:
     def __init__(self):
@@ -27,16 +28,19 @@ class DbManager:
         self.cursor = cursor
 
     def __del__(self):
-        print("dbManager delete")
-        logging.info("dbManager delete")
-        self.conn.commit()
-        self.conn.close()
+        if self.conn:
+            self.conn.commit()
+            self.conn.close()
 
     def get_process_tbl(self):
         self.cursor.execute("SELECT * FROM process")
         rows = self.cursor.fetchall()
-        process_tbl = { k: v for v, k in rows }
-        return process_tbl
+        return rows
+
+    def get_activity_tbl(self):
+        self.cursor.execute("SELECT * FROM activity")
+        rows = self.cursor.fetchall()
+        return rows
 
     def insert_process_tbl(self, process):
         self.cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
@@ -50,6 +54,13 @@ class DbManager:
         self.cursor.execute(insert_sql, data)
 
     def commit(self):
-        print("dbManager commit")
+        print(f"dbManager commit")
+        logging.info(f"dbManager commit")
         logging.info("dbManager commit")
         self.conn.commit()
+
+    def disconnect(self):
+        self.conn.commit()
+        self.conn.close()
+        self.conn = None
+        self.cursor = None

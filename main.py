@@ -28,7 +28,7 @@ def main():
     print(os.getcwd())
     logging.info(f"pwd, {os.getcwd()}")
 
-    threadManager.start_thread(kachikachi, args=(threadManager.record_event, threadManager.exit_event), daemon=False)
+    threadManager.start_thread(kachikachi, daemon=False)
     threadManager.start_thread(listen_for_shutdown, daemon=True)
 
     # 运行托盘程序
