@@ -3,7 +3,6 @@ from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem
 
 from plot import plot
-from db_manager import DbManager
 from thread_manager import threadManager
 
 class Tray:
@@ -51,7 +50,6 @@ class Tray:
         self.icon.stop()
 
     def on_plot(self, icon, item):
-        threadManager.plot_event.set()
         subprocess.Popen(['./Scripts/pythonw', 'plot.py'])
 
     def run(self):

@@ -38,9 +38,6 @@ def kachikachi():
         if not threadManager.record_event.is_set():
             threadManager.record_event.wait(1)
             continue;
-        if threadManager.plot_event.is_set():
-            dbManager.commit()
-            threadManager.plot_event.clear()
 
         cur_time = int(time.time())
         title, process = get_active_window_title_and_process_name()
@@ -70,6 +67,7 @@ def kachikachi():
 
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
+        dbManager.commit()
         threadManager.exit_event.wait(60)
 
     if activity_item != None:
