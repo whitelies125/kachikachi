@@ -1,3 +1,4 @@
+import sys
 import subprocess
 from PIL import Image, ImageDraw
 from pystray import Icon, Menu, MenuItem
@@ -50,7 +51,7 @@ class Tray:
         self.icon.stop()
 
     def on_plot(self, icon, item):
-        subprocess.Popen(['./Scripts/pythonw', 'plot.py'])
+        subprocess.Popen([sys.executable, 'plot.py'])
 
     def run(self):
         self.icon.run()
