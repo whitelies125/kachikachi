@@ -19,13 +19,13 @@ def main():
     path  = os.path.dirname(__file__)
     os.chdir(path)
     logging.basicConfig(
-        filename = "./tray_log.txt",  # 日志文件名
+        filename = "log.txt",  # 日志文件名
         level = logging.INFO,  # 设置最低记录级别
         format = "%(asctime)s [%(levelname)s] %(message)s",
         datefmt = "%Y-%m-%d %H:%M:%S",
         filemode = "w",  # 写入模式：'w' 覆盖，'a' 追加
     )
-    print(os.getcwd())
+    print("pwd: ", os.getcwd())
     logging.info(f"pwd, {os.getcwd()}")
 
     threadManager.start_thread(kachikachi, daemon=False)

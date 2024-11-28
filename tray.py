@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 from PIL import Image, ImageDraw
@@ -17,15 +18,9 @@ class Tray:
         self.icon = Icon("kachikachi", self.create_image(), "Kachikachi", menu = menu)
 
     def create_image(self):
-        """生成一个简单的图标图片"""
-        width = 64
-        height = 64
-        color1 = "blue"
-        color2 = "white"
-
-        image = Image.new("RGB", (width, height), color1)
-        draw = ImageDraw.Draw(image)
-        draw.ellipse((width // 4, height // 4, 3 * width // 4, 3 * height // 4), fill=color2)
+        path  = os.path.dirname(__file__)
+        image_path = os.path.join(path, "clock_icon_64x64.ico")
+        image = Image.open(image_path)
         return image
 
     def on_stop(self, icon, item):
