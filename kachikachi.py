@@ -33,7 +33,10 @@ class Activity_item:
 def kachikachi():
     dbManager = DbManager()
     activity_item = None;
-    process_tbl = { v: k for k, v in dbManager.get_process_tbl() }
+    process_tbl = dbManager.get_process_tbl()
+    if process_tbl is None:
+        return
+    process_tbl = { v: k for k, v in process_tbl }
     while not threadManager.exit_event.is_set():
         if not threadManager.record_event.is_set():
             threadManager.record_event.wait(1)
@@ -45,7 +48,7 @@ def kachikachi():
         if process == None:
             if activity_item == None:
                 print("kachikachi None None...")
-                logging.warn("kachikachi, None None...")
+                logging.warning("kachikachi, None None...")
                 threadManager.exit_event.wait(60)
                 continue;
             if activity_item != None:
@@ -56,7 +59,10 @@ def kachikachi():
         if process != None:
             if process not in process_tbl:
                 dbManager.insert_process_tbl(process)
-                process_tbl = { v: k for k, v in dbManager.get_process_tbl() }
+                process_tbl = dbManager.get_process_tbl()
+                if process_tbl is None:
+                    return
+                process_tbl = { v: k for k, v in process_tbl }
             if activity_item == None:
                 activity_item = Activity_item(process_tbl[process], cur_time)
             activity_item.end_time = cur_time;
@@ -68,7 +74,7 @@ def kachikachi():
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
         dbManager.commit()
-        threadManager.exit_event.wait(60)
+        threadManager.exit_event.wait(1)
 
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")

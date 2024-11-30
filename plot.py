@@ -1,4 +1,3 @@
-import sqlite3
 import matplotlib.pyplot as plt
 
 from db_manager import DbManager

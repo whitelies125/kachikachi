@@ -1,10 +1,9 @@
 import os
 import sys
 import subprocess
-from PIL import Image, ImageDraw
+from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
-from plot import plot
 from thread_manager import threadManager
 
 class Tray:

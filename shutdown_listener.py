@@ -3,10 +3,9 @@ import win32con
 import win32gui
 import logging
 
-from thread_manager import threadManager
-
 class ShutdownListener:
     def __init__(self):
+        self.regiter_name = "ShutdownListener"
         self.hwnd = None
         self.callback = []
 
@@ -17,10 +16,10 @@ class ShutdownListener:
     def wnd_proc(self, hwnd, msg, wparam, lparam):
         if msg == win32con.WM_QUERYENDSESSION:
             print("System prepare shutdown!")
-            logging.warn(f"System prepare shutdown!")
+            logging.warning(f"System prepare shutdown!")
         elif msg == win32con.WM_ENDSESSION:
             print("System is shutting down!")
-            logging.warn(f"System is shutting down!")
+            logging.warning(f"System is shutting down!")
             for func in self.callback:
                 func()
             win32gui.PostQuitMessage(0) # 退出消息监听
@@ -33,12 +32,12 @@ class ShutdownListener:
             win32con.WM_QUERYENDSESSION: self.wnd_proc,
             win32con.WM_ENDSESSION: self.wnd_proc
         }
-        wnd_class.lpszClassName = "ShutdownListener"
+        wnd_class.lpszClassName = self.regitername
         wnd_class.hInstance = win32api.GetModuleHandle(None)
         hwnd = win32gui.CreateWindowEx(
             win32con.WS_EX_LEFT, # 扩展窗口样式，WS_EX_LEFT表示左对齐，通常设置为0
             win32gui.RegisterClass(wnd_class), # 注册窗口类并返回类原子标识符
-            "ShutdownListener",  # 窗口标题
+            self.regiter_name,  # 窗口标题
             0,  # 窗口样式
             0, 0,  # 窗口位置 (x, y)
             win32con.CW_USEDEFAULT, win32con.CW_USEDEFAULT, # 窗口尺寸 (width, height)
@@ -51,8 +50,8 @@ class ShutdownListener:
 
     def destroy_hidden_window(self):
         if self.hwnd is not None:
-            win32gui.DestroyWindow(hwnd)
-            win32gui.UnregisterClass("ShutdownListener", win32api.GetModuleHandle(None))
+            win32gui.DestroyWindow(self.hwnd)
+            win32gui.UnregisterClass(self.regiter_name, win32api.GetModuleHandle(None))
 
     def run(self):
         print("ShutdownListener run")

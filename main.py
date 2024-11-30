@@ -1,6 +1,5 @@
 import os
 import logging
-import threading
 
 from kachikachi import kachikachi
 from shutdown_listener import shutdownListener

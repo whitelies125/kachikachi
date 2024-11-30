@@ -1,6 +1,5 @@
 import sqlite3
 import logging
-import threading
 
 class DbManager:
     def __init__(self):
@@ -28,40 +27,45 @@ class DbManager:
         self.cursor = cursor
 
     def __del__(self):
-        if self.conn:
-            self.conn.commit()
-            self.conn.close()
+        self.disconnect()
 
     def get_process_tbl(self):
-        self.cursor.execute("SELECT * FROM process")
-        rows = self.cursor.fetchall()
-        return rows
+        if self.cursor:
+            self.cursor.execute("SELECT * FROM process")
+            rows = self.cursor.fetchall()
+            return rows
+        return ()
 
     def get_activity_tbl(self):
-        self.cursor.execute("SELECT * FROM activity")
-        rows = self.cursor.fetchall()
-        return rows
+        if self.cursor:
+            self.cursor.execute("SELECT * FROM activity")
+            rows = self.cursor.fetchall()
+            return rows
+        return ()
 
     def insert_process_tbl(self, process):
-        self.cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
+        if self.cursor:
+            self.cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
 
     def insert_activity_tbl(self, activity_item):
-        # 插入语句
-        insert_sql = "INSERT INTO activity (process_id, start_time, end_time) VALUES (?, ?, ?)"
-        # 待插入数据
-        data = (activity_item.process_id, activity_item.start_time, activity_item.end_time)
-        # 执行插入操作
-        self.cursor.execute(insert_sql, data)
+        if self.cursor:
+            # 插入语句
+            insert_sql = "INSERT INTO activity (process_id, start_time, end_time) VALUES (?, ?, ?)"
+            # 待插入数据
+            data = (activity_item.process_id, activity_item.start_time, activity_item.end_time)
+            # 执行插入操作
+            self.cursor.execute(insert_sql, data)
 
     def commit(self):
         # True if a transaction is active (there are uncommitted changes), False otherwise.
-        if self.conn.in_transaction:
+        if self.conn and self.conn.in_transaction:
             print(f"dbManager commit")
             logging.info("dbManager commit")
             self.conn.commit()
 
     def disconnect(self):
-        self.conn.commit()
-        self.conn.close()
-        self.conn = None
-        self.cursor = None
+        if self.conn:
+            self.conn.commit()
+            self.conn.close()
+            self.conn = None
+            self.cursor = None
