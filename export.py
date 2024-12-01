@@ -13,10 +13,7 @@ def main():
     args = parser.parse_args()
 
     dbManager = DbManager()
-    process_tbl = dbManager.get_process_tbl()
-    if process_tbl is None:
-        return
-    process_tbl = { v: k for k, v in process_tbl }
+    process_tbl = { k: v for k, v in dbManager.get_process_tbl() }
     activity_tbl = dbManager.get_activity_tbl()
     if activity_tbl is None:
         return

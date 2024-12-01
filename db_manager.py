@@ -57,7 +57,7 @@ class DbManager:
             self.cursor.execute(insert_sql, data)
 
     def commit(self):
-        # True if a transaction is active (there are uncommitted changes), False otherwise.
+        # in_transaction: True if a transaction is active (there are uncommitted changes), False otherwise.
         if self.conn and self.conn.in_transaction:
             print(f"dbManager commit")
             logging.info("dbManager commit")
