@@ -5,11 +5,15 @@ a simple time tracker.
 
 # Usage
 
+## Run
+
 以 python 脚本运行：  
 run as python script:
 ~~~python
 python main.py
 ~~~
+
+## Tray
 
 ![image](https://github.com/user-attachments/assets/612c1680-b4eb-436b-8158-1593e867c100)
 
@@ -26,6 +30,32 @@ click `plot` to show statistic result.
 
 点击 `Exit` 以退出程序.  
 click `Exit` to exit the program.
+
+## Config.json
+
+在 `config.json` 中配置 `ignore` 和 `group` 项  
+- `igonre` 中的项目将不计入统计  
+- `group` 中的项目将合并计算  
+
+Configure the `ignore` and `group` items in config.json.  
+- Items in `ignore` will be ignored form the statistics.  
+- Items in `group` will be merged into one.
+
+~~~json
+{
+    "ignore": [
+        "LockApp.exe"
+    ],
+    "group" : {
+        "League of Legends.exe" : [
+            "League of Legends.exe",
+            "LeagueClientUx.exe"
+        ]
+    }
+}
+~~~
+
+
 
 # Statistic logic
 
