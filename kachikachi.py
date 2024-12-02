@@ -68,7 +68,7 @@ def kachikachi():
         print("kachikachi task running...")
         logging.info("kachikachi, task running...")
         dbManager.commit()
-        threadManager.exit_event.wait(1)
+        threadManager.exit_event.wait(60)
 
     if activity_item != None:
         logging.info(f"kachikachi, insert thread exit {activity_item}")
