@@ -21,12 +21,11 @@ def main():
 
     data = list()
     for activity in activity_tbl:
-        db_id, process_id, start_time, end_time = activity
+        index, process_id, start_time, end_time = activity
         if not args.origin:
             start_time = datetime.fromtimestamp(start_time).strftime('%Y-%m-%d %H:%M:%S')
             end_time = datetime.fromtimestamp(end_time).strftime('%Y-%m-%d %H:%M:%S')
-        data.append((db_id, process_tbl[process_id], start_time, end_time))
-    print(data)
+        data.append((index, process_tbl[process_id], start_time, end_time))
 
     with open('export.csv', 'w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)

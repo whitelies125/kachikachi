@@ -1,0 +1,11 @@
+{
+    "ignore": [
+        "LockApp.exe"
+    ],
+    "group" : {
+        "League of Legends.exe" : [
+            "League of Legends.exe",
+            "LeagueClientUx.exe"
+        ]
+    }
+}
