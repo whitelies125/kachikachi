@@ -48,6 +48,8 @@ class DbManager:
             self.cursor.execute("INSERT INTO process (process) VALUES (?)", (process,))
 
     def insert_activity_tbl(self, activity_item):
+        if activity_item.end_time <= activity_item.start_time:
+            return
         if self.cursor:
             # 插入语句
             insert_sql = "INSERT INTO activity (process_id, start_time, end_time) VALUES (?, ?, ?)"
