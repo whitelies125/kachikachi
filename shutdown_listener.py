@@ -32,7 +32,7 @@ class ShutdownListener:
             win32con.WM_QUERYENDSESSION: self.wnd_proc,
             win32con.WM_ENDSESSION: self.wnd_proc
         }
-        wnd_class.lpszClassName = self.regitername
+        wnd_class.lpszClassName = self.regiter_name
         wnd_class.hInstance = win32api.GetModuleHandle(None)
         hwnd = win32gui.CreateWindowEx(
             win32con.WS_EX_LEFT, # 扩展窗口样式，WS_EX_LEFT表示左对齐，通常设置为0

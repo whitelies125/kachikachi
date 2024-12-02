@@ -12,7 +12,7 @@ def get_group_name(group, process_name):
             return key
     return process_name
 
-def plot():
+def load_config():
     ignore = list()
     group = dict()
     config = "./config.json"
@@ -27,6 +27,10 @@ def plot():
         pass
     except json.JSONDecodeError:
         print(f"{config} JSON decode fail.")
+    return ignore, group
+
+def plot():
+    ignore, group = load_config()
 
     dbManager = DbManager()
     process_tbl = { k: v for k, v in dbManager.get_process_tbl() }
