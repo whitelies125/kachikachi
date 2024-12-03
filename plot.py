@@ -1,6 +1,6 @@
-import matplotlib.pyplot as plt
 import argparse
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 import json
 from db_manager import DbManager
@@ -38,6 +38,7 @@ def get_query_time():
     group.add_argument("-seven_day", action = "store_true", help = "Plot recently senven day data.")
     group.add_argument("-month", action = "store_true", help = "Plot this month data.")
     group.add_argument("-year", action = "store_true", help = "Plot this year data.")
+    group.add_argument("-all", action = "store_true", help = "Plot all data.")
 
     args = parser.parse_args()
     query_time = None
@@ -50,6 +51,8 @@ def get_query_time():
         query_time = int(datetime(now.year, now.month, 1).timestamp())
     elif args.year:
         query_time = int(datetime(now.year, 1, 1).timestamp())
+    elif args.all:
+        query_time = None
     return query_time
 
 def plot():
