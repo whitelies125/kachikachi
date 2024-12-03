@@ -36,9 +36,13 @@ class DbManager:
             return rows
         return ()
 
-    def get_activity_tbl(self):
+    def get_activity_tbl(self, time = None):
         if self.cursor:
-            self.cursor.execute("SELECT * FROM activity")
+            if time is None:
+                self.cursor.execute("SELECT * FROM activity")
+            else:
+                query_sql = "SELECT * FROM activity WHERE end_time >= ?"
+                self.cursor.execute(query_sql, (time,))
             rows = self.cursor.fetchall()
             return rows
         return ()

@@ -1,4 +1,7 @@
 import matplotlib.pyplot as plt
+import time
+import argparse
+from datetime import datetime
 
 import json
 from db_manager import DbManager
@@ -29,18 +32,44 @@ def load_config():
         print(f"{config} JSON decode fail.")
     return ignore, group
 
+def get_query_time():
+    parser = argparse.ArgumentParser(description="Plot database data.")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("-today", action = "store_true", help = "Plot today data.")
+    group.add_argument("-seven_day", action = "store_true", help = "Plot recently senven day data.")
+    group.add_argument("-month", action = "store_true", help = "Plot this month data.")
+    group.add_argument("-year", action = "store_true", help = "Plot this year data.")
+
+    args = parser.parse_args()
+    query_time = None
+    now = datetime.now()
+    if args.today:
+        query_time = int(datetime(now.year, now.month, now.day).timestamp())
+    elif args.seven_day:
+        query_time = int(datetime(now.year, now.month, now.day).timestamp()) - 6 * 24 * 60 * 60
+    elif args.month:
+        query_time = int(datetime(now.year, now.month, 1).timestamp())
+    elif args.year:
+        query_time = int(datetime(now.year, 1, 1).timestamp())
+    return query_time
+
 def plot():
+    query_time = get_query_time()
+    print(query_time)
     ignore, group = load_config()
 
     dbManager = DbManager()
     process_tbl = { k: v for k, v in dbManager.get_process_tbl() }
-    activity_tbl = dbManager.get_activity_tbl()
+    activity_tbl = dbManager.get_activity_tbl(query_time)
     dbManager.disconnect()
 
     statistic = dict()
     total = 0
     for activity in activity_tbl :
         index, process_id, start_time, end_time = activity
+        if start_time < query_time:
+            # 第一个 activity 的 start_time 可能不在统计时间段内，故除去
+            start_time = query_time
         duration = end_time - start_time
         process_name = process_tbl[process_id]
         if process_name not in ignore:
