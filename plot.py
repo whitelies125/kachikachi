@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import time
 import argparse
 from datetime import datetime
 
@@ -34,7 +33,7 @@ def load_config():
 
 def get_query_time():
     parser = argparse.ArgumentParser(description="Plot database data.")
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group()
     group.add_argument("-today", action = "store_true", help = "Plot today data.")
     group.add_argument("-seven_day", action = "store_true", help = "Plot recently senven day data.")
     group.add_argument("-month", action = "store_true", help = "Plot this month data.")
@@ -55,7 +54,6 @@ def get_query_time():
 
 def plot():
     query_time = get_query_time()
-    print(query_time)
     ignore, group = load_config()
 
     dbManager = DbManager()
@@ -67,8 +65,8 @@ def plot():
     total = 0
     for activity in activity_tbl :
         index, process_id, start_time, end_time = activity
-        if start_time < query_time:
-            # 第一个 activity 的 start_time 可能不在统计时间段内，故除去
+        if query_time and start_time < query_time:
+            # 第一个 activity 的 start_time 可能不在统计时间段内，故除去这段时间
             start_time = query_time
         duration = end_time - start_time
         process_name = process_tbl[process_id]
