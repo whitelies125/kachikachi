@@ -57,11 +57,11 @@ class Tray:
 
     def on_plot(self, icon, item):
         para = '-all'
-        if item == 'today': para = '-today'
-        if item == 'seven day': para = '-seven_day'
-        if item == 'this month': para = '-month'
-        if item == 'this year': para = '-year'
-        if item == 'all': para = '-all'
+        if item.text == 'today': para = '-today'
+        if item.text == 'seven day': para = '-seven_day'
+        if item.text == 'this month': para = '-month'
+        if item.text == 'this year': para = '-year'
+        print(para)
         subprocess.Popen([sys.executable, 'plot.py', para])
 
     def on_custom_date(icon, item):
