@@ -12,11 +12,11 @@ from thread_manager import threadManager
 class Tray:
     def __init__(self):
         self.plot_submenu = Menu(
+            MenuItem("all", self.on_plot),
             MenuItem("today", self.on_plot),
             MenuItem("seven day", self.on_plot),
             MenuItem("this month", self.on_plot),
             MenuItem("this year", self.on_plot),
-            MenuItem("all", self.on_plot),
             MenuItem("custome_date", self.on_custom_date)
         )
         menu = Menu(
