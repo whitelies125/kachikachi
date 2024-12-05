@@ -8,6 +8,7 @@ from PIL import Image
 from pystray import Icon, Menu, MenuItem
 
 from thread_manager import threadManager
+from db_manager import DbManager
 
 class Tray:
     def __init__(self):
@@ -23,6 +24,7 @@ class Tray:
             MenuItem(f"Status: Recording", None),
             MenuItem("Stop record", self.on_stop),
             MenuItem("Plot", self.plot_submenu),
+            MenuItem("Trend", self.trend),
             MenuItem("Exit", self.on_exit)
         )
         self.icon = Icon("kachikachi", self.create_image(), "Kachikachi", menu = menu)
@@ -108,6 +110,50 @@ class Tray:
 
         root.mainloop()
         print("root end")
+
+    def trend(self, icon, item):
+        dbManager = DbManager()
+        process_tbl = [ item[1] for item in dbManager.get_process_tbl() ]
+        process_tbl.sort()
+        dbManager.disconnect()
+        # 创建窗口
+        root = tk.Tk()
+        root.title("Trend Analysis")
+
+        # 进程选择
+        tk.Label(root, text = "Select a process:").pack(pady = 5)
+        process_var = tk.StringVar(value = process_tbl[0])
+        # 假设从配置或数据库中获取进程名列表
+        process_dropdown = tk.OptionMenu(root, process_var, *process_tbl)
+        process_dropdown.pack(pady=5)
+
+        # 统计周期选择
+        tk.Label(root, text="Select time period:").pack(pady = 5)
+        period_var = tk.StringVar(value = "by_month")
+        period_frame = tk.Frame(root)
+        period_frame.pack(pady = 5)
+        tk.Radiobutton(period_frame, text="By week", variable = period_var, value = "by_week").pack(side = tk.LEFT, padx = 5)
+        tk.Radiobutton(period_frame, text="By month", variable = period_var, value = "by_month").pack(side = tk.LEFT, padx = 5)
+        tk.Radiobutton(period_frame, text="By year", variable = period_var, value = "by_year").pack(side = tk.LEFT, padx = 5)
+
+        # 确认按钮
+        def on_confirm():
+            process_name = process_var.get()
+            period = period_var.get()
+
+            # if not process_name or not period:
+            #     tk.messagebox.showwarning("Invalid Input", "Please select a process and a time period.")
+            #     return
+
+            # 调用子进程
+            print(f"Selected Process: {process_name}, Period: {period}")
+            # subprocess.Popen([sys.executable, 'trend.py', '--process', process_name, '--period', period])
+            root.destroy()
+
+        confirm_btn = tk.Button(root, text = "Confirm", command = on_confirm)
+        confirm_btn.pack(pady = 10)
+
+        root.mainloop()
 
     def run(self):
         self.icon.run()
